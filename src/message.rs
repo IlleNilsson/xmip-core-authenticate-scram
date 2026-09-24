@@ -8,8 +8,6 @@
 //! username writes `,` as `=2C` and `=` as `=3D`.
 
 use authenticate::AuthenticateError;
-use base64::Engine;
-use base64::engine::general_purpose::STANDARD;
 
 /// The client-first-message.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -138,8 +136,7 @@ impl ClientFinal {
         let binding = attribute(attributes.next(), 'c', of)?;
         let nonce = attribute(attributes.next(), 'r', of)?;
         let decode = |text: &str, what: &str| {
-            STANDARD
-                .decode(text)
+            codec::base64::decode(text)
                 .map_err(|_| AuthenticateError::new(format!("the SCRAM {what} is not base64")))
         };
         Ok(Self {

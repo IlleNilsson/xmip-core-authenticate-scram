@@ -28,8 +28,6 @@ pub use message::{ClientFinal, ClientFirst};
 
 use authenticate::store::{CredentialStore, KEY_LENGTH, Verifier, fresh_salt, hmac_sha256, sha256};
 use authenticate::{AuthenticateError, Authenticator, Presented};
-use base64::Engine;
-use base64::engine::general_purpose::STANDARD;
 use context::Verified;
 use std::collections::HashMap;
 use std::sync::{Mutex, MutexGuard, PoisonError};
@@ -97,7 +95,7 @@ impl ScramAuthenticator {
     pub fn new(store: CredentialStore) -> Self {
         Self {
             store,
-            nonces: Box::new(|| STANDARD.encode(fresh_salt("scram.nonce"))),
+            nonces: Box::new(|| codec::base64::encode(&fresh_salt("scram.nonce"))),
             decoy: fresh_salt("scram.decoy"),
             exchanges: Mutex::new(Exchanges::default()),
         }
@@ -141,7 +139,10 @@ impl ScramAuthenticator {
             seed.extend_from_slice(first.username.as_bytes());
             (sha256(&seed)[..16].to_vec(), self.store.iterations())
         };
-        let server_first = format!("r={nonce},s={},i={iterations}", STANDARD.encode(salt));
+        let server_first = format!(
+            "r={nonce},s={},i={iterations}",
+            codec::base64::encode(&salt)
+        );
 
         let mut exchanges = self.exchanges();
         make_room(&mut exchanges.open, |exchange| exchange.opened);
@@ -245,7 +246,7 @@ impl Authenticator for ScramAuthenticator {
         let proven = exchanges.next();
         exchanges
             .proven
-            .insert(last.nonce, (proven, STANDARD.encode(signature)));
+            .insert(last.nonce, (proven, codec::base64::encode(&signature)));
         Ok(Verified::Proven)
     }
 }
@@ -268,7 +269,7 @@ mod tests {
     const NONCE: &str = "rOprNGfwEbeRWgbNEkqO%hvYDpWUa2RaTCAfuxFIlj)hNlF$k0";
 
     fn published() -> ScramAuthenticator {
-        let salt = STANDARD.decode("W22ZaJ0SNY7soEsUEjb6gQ==").expect("base64");
+        let salt = codec::base64::decode("W22ZaJ0SNY7soEsUEjb6gQ==").expect("base64");
         let mut store = CredentialStore::with_iterations(ITERATIONS);
         store.insert_verifier("user", Verifier::derive("pencil", &salt, ITERATIONS));
         ScramAuthenticator::new(store).with_nonces(|| SERVER_NONCE.to_string())
@@ -286,7 +287,7 @@ mod tests {
                 .find_map(|part| part.strip_prefix(name))
                 .expect("present")
         };
-        let salt = STANDARD.decode(field("s=")).expect("base64");
+        let salt = codec::base64::decode(field("s=")).expect("base64");
         let iterations: u32 = field("i=").parse().expect("a number");
         let without_proof = format!("c=biws,r={}", field("r="));
         let auth_message = format!("{client_first_bare},{server_first},{without_proof}");
@@ -298,7 +299,7 @@ mod tests {
             .zip(signature)
             .map(|(key, byte)| key ^ byte)
             .collect();
-        format!("{without_proof},p={}", STANDARD.encode(proof))
+        format!("{without_proof},p={}", codec::base64::encode(&proof))
     }
 
     #[test]
