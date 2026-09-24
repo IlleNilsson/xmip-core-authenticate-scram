@@ -20,8 +20,8 @@ path = "src/lib.rs"
 authenticate = { package = "xmip-core-authenticate", git = "https://github.com/IlleNilsson/xmip-core-authenticate", branch = "main" }
 xcore = { package = "xmip-core", git = "https://github.com/IlleNilsson/xmip-core", branch = "main" }
 context = { package = "xmip-core-context", git = "https://github.com/IlleNilsson/xmip-core-context", branch = "main" }
-# RFC 5802 carries the salt, nonce and proof as base64. The estate's base64 crate.
-base64 = "0.22"
+# The estate's base 64 (RFC 4648), which the credential travels in.
+codec = { package = "xmip-core-library-codec", git = "https://github.com/IlleNilsson/xmip-core-library-codec", branch = "main" }
 
 [lints.rust]
 unsafe_code = "forbid"
