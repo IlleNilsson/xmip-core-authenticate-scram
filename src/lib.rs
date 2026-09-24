@@ -27,8 +27,9 @@ pub mod message;
 pub use message::{ClientFinal, ClientFirst};
 
 use authenticate::store::{CredentialStore, KEY_LENGTH, Verifier, fresh_salt, hmac_sha256, sha256};
-use authenticate::{AuthenticateError, Authenticator, Presented};
+use authenticate::{AuthenticateError, Authenticator};
 use context::Verified;
+use identify::Presented;
 use std::collections::HashMap;
 use std::sync::{Mutex, MutexGuard, PoisonError};
 use xcore::{Mechanism, mechanism};
