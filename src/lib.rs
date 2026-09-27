@@ -174,13 +174,6 @@ impl ScramAuthenticator {
     }
 }
 
-/// Whether a claim is one this verifier reads: a bare `username`, or one
-/// the carrier already filed under `scram`.
-fn reads(mechanism: &Mechanism) -> bool {
-    let name = mechanism.name();
-    name == "username" || name == "scram"
-}
-
 /// `ClientKey = ClientProof XOR HMAC(StoredKey, AuthMessage)`.
 fn client_key(verifier: &Verifier, auth_message: &str, proof: &[u8]) -> Option<[u8; KEY_LENGTH]> {
     if proof.len() != KEY_LENGTH {
@@ -199,12 +192,7 @@ impl Authenticator for ScramAuthenticator {
     }
 
     fn verify(&self, presented: &Presented) -> Result<Verified, AuthenticateError> {
-        if !reads(&presented.mechanism) {
-            return Err(AuthenticateError::new(format!(
-                "'{}' is not a claim the SCRAM verifier reads: it takes a username",
-                presented.mechanism.name()
-            )));
-        }
+        authenticate::account::user_claim(presented, &self.mechanism())?;
         let message = presented.proof(PROOF).ok_or_else(|| {
             AuthenticateError::new(format!(
                 "no '{PROOF}' proof was presented with the username '{}'",
