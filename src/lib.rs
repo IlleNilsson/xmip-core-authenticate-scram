@@ -26,8 +26,9 @@ pub mod message;
 
 pub use message::{ClientFinal, ClientFirst};
 
-use authenticate::store::{CredentialStore, KEY_LENGTH, Verifier, fresh_salt, hmac_sha256, sha256};
+use authenticate::store::{CredentialStore, KEY_LENGTH, Verifier, hmac_sha256, sha256};
 use authenticate::{AuthenticateError, Authenticator};
+use codec::random;
 use context::Verified;
 use identify::Presented;
 use std::collections::HashMap;
@@ -96,8 +97,8 @@ impl ScramAuthenticator {
     pub fn new(store: CredentialStore) -> Self {
         Self {
             store,
-            nonces: Box::new(|| codec::base64::encode(&fresh_salt("scram.nonce"))),
-            decoy: fresh_salt("scram.decoy"),
+            nonces: Box::new(|| codec::base64::encode(&random::array::<16>())),
+            decoy: random::array(),
             exchanges: Mutex::new(Exchanges::default()),
         }
     }
