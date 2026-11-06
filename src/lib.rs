@@ -32,7 +32,8 @@ use codec::random;
 use context::Verified;
 use identify::Presented;
 use std::collections::HashMap;
-use std::sync::{Mutex, MutexGuard, PoisonError};
+use std::sync::{Mutex, MutexGuard};
+use xcore::lock::Locked;
 use xcore::{Mechanism, mechanism};
 
 /// The proof name this verifier reads off a `Presented`: the whole
@@ -118,9 +119,7 @@ impl ScramAuthenticator {
     }
 
     fn exchanges(&self) -> MutexGuard<'_, Exchanges> {
-        self.exchanges
-            .lock()
-            .unwrap_or_else(PoisonError::into_inner)
+        self.exchanges.locked()
     }
 
     /// Answer a client-first-message with the server-first-message, and
