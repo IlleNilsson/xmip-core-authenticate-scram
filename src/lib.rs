@@ -26,8 +26,9 @@ pub mod message;
 
 pub use message::{ClientFinal, ClientFirst};
 
-use authenticate::store::{CredentialStore, KEY_LENGTH, Verifier, hmac_sha256, sha256};
+use authenticate::store::{CredentialStore, KEY_LENGTH, Verifier};
 use authenticate::{AuthenticateError, Authenticator};
+use codec::digest::{hmac_sha256, sha256};
 use codec::random;
 use context::Verified;
 use identify::Presented;
@@ -243,7 +244,7 @@ impl Authenticator for ScramAuthenticator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use authenticate::store::pbkdf2_sha256;
+    use authenticate::store::salted_password;
 
     const ITERATIONS: u32 = 4096;
 
@@ -280,7 +281,7 @@ mod tests {
         let iterations: u32 = field("i=").parse().expect("a number");
         let without_proof = format!("c=biws,r={}", field("r="));
         let auth_message = format!("{client_first_bare},{server_first},{without_proof}");
-        let salted = pbkdf2_sha256(password.as_bytes(), &salt, iterations);
+        let salted = salted_password(password.as_bytes(), &salt, iterations);
         let client_key = hmac_sha256(&salted, b"Client Key");
         let signature = hmac_sha256(&sha256(&client_key), auth_message.as_bytes());
         let proof: Vec<u8> = client_key
