@@ -1,11 +1,11 @@
 [package]
 name = "xmip-core-authenticate-scram"
-version = "0.1.0"
-edition = "2024"
-license = "AGPL-3.0-or-later"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
 repository = "https://github.com/IlleNilsson/xmip-core-authenticate-scram"
 description = "Authenticate by SCRAM-SHA-256: runs the RFC 7677 exchange on the server side against the capability's stored verifiers. A xmip-core-authenticate technology."
-publish = false
+publish.workspace = true
 
 [lib]
 path = "src/lib.rs"
@@ -22,13 +22,5 @@ context = { package = "xmip-core-context", git = "https://github.com/IlleNilsson
 # The estate's base 64 (RFC 4648), which the credential travels in.
 codec = { package = "xmip-core-library-codec", git = "https://github.com/IlleNilsson/xmip-core-library-codec", branch = "main" }
 
-[lints.rust]
-unsafe_code = "forbid"
-
-[lints.clippy]
-too_many_lines = "warn"
-pedantic = { level = "warn", priority = -1 }
-missing_errors_doc = "warn"
-missing_panics_doc = "warn"
-unwrap_used = "warn"
-expect_used = "allow"
+[lints]
+workspace = true
